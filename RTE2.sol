@@ -732,10 +732,12 @@ abstract contract ERC20Burnable is Context, ERC20 {
 pragma solidity ^0.8.0;
 
 contract RTE is ERC20, ERC20Burnable, Pausable, Ownable {
-    uint256 private immutable _cap;
+    uint256 private _cap;
 
     constructor() ERC20('RTE', 'RTE') {
-        _cap = 500000000 * 10**decimals();
+        uint256 num = 500000000 * 10**decimals();
+        _cap = num;
+        _mint(msg.sender, num);
     }
 
     function cap() public view virtual returns (uint256) {
