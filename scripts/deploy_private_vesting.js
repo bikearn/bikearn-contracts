@@ -8,7 +8,7 @@ const main = async () => {
     const Vesting = await ethers.getContractFactory("PrivateVesting");
     const vesting = await Vesting.deploy(
         addresses.rteAddress,
-        addresses.rteAddress,
+        addresses.busdAddress,
         "0x1a1a022f208ccb1b3f2d619d8fafcdf093190db4",
         // Math.floor(Date.now() / 1000)
         1653224400

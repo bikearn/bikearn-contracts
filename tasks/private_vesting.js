@@ -4,7 +4,7 @@ const { parseEther, formatEther, UNLIMITED_ALLOWANCE, txUrl } = require('../util
 
 const vestingAbi =
     require('../artifacts/contracts/PrivateVesting.sol/PrivateVesting.json').abi
-const rteAbi =
+const busdAbi =
     require('../artifacts/contracts/RTE.sol/RTE.json').abi
 
 task('private-vesting', 'private vesting tasks')
@@ -42,7 +42,7 @@ subtask('private-vesting-get-user', 'get user').setAction(async (args, hre) => {
 })
 
 subtask('private-vesting-buy', 'buy').setAction(async (args, hre) => {
-    const { privateVestingAddress, rteAddress } = require(`../${hre.network.name}_address.json`)
+    const { privateVestingAddress, busdAddress } = require(`../${hre.network.name}_address.json`)
     const signer = await ethers.getSigner()
 
     const vesting = new ethers.Contract(
@@ -50,16 +50,16 @@ subtask('private-vesting-buy', 'buy').setAction(async (args, hre) => {
         vestingAbi,
         signer
     )
-    const rte = new ethers.Contract(
-        rteAddress,
-        rteAbi,
+    const busd = new ethers.Contract(
+        busdAddress,
+        busdAbi,
         signer
     )
 
-    const allowance = await rte.allowance(signer.address, vesting.address)
+    const allowance = await busd.allowance(signer.address, vesting.address)
     if (allowance.eq(ethers.BigNumber.from('0'))) {
-        const rteApproval = await rte.approve(vesting.address, UNLIMITED_ALLOWANCE)
-        await rteApproval.wait()
+        const busdApproval = await busd.approve(vesting.address, UNLIMITED_ALLOWANCE)
+        await busdApproval.wait()
     }
 
     try {
@@ -75,7 +75,7 @@ subtask('private-vesting-buy', 'buy').setAction(async (args, hre) => {
 })
 
 subtask('private-vesting-claim', 'claim').setAction(async (args, hre) => {
-    const { privateVestingAddress, rteAddress } = require(`../${hre.network.name}_address.json`)
+    const { privateVestingAddress } = require(`../${hre.network.name}_address.json`)
     const signer = await ethers.getSigner()
 
     const vesting = new ethers.Contract(
