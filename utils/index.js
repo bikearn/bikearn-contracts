@@ -1,5 +1,4 @@
-// const ethers = require('ethers')
-const { ethers } = require('hardhat')
+const ethers = require('ethers')
 const keccak256 = require('keccak256')
 const minterBytes32 = '0x' + keccak256('MINTER_ROLE').toString('hex')
 
@@ -55,9 +54,9 @@ exports.createSignature = async ({ types, values, signer }) => {
     return signature
 }
 
-exports.getContract = async (contractName) => {
+exports.getContract = async (hardhatEthers, contractName) => {
     return {
-        contract: await ethers.getContractFactory(contractName),
+        contract: await hardhatEthers.getContractFactory(contractName),
         abi: require(`../artifacts/contracts/${contractName}.sol/${contractName}.json`).abi
     }
 }

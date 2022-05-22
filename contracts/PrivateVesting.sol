@@ -16,17 +16,22 @@ contract PrivateVesting is Ownable {
     address public dev;
 
     uint256 public startTime;
-    uint256 public cliffTime = 60 days;
+    uint256 public buyDuration = 2 days;
+    uint256 public cliffTime = 1 days;
     uint256 public initVestingPercent = 15;
     uint256 public ipoPrice = 48e14; // 0.0048
+    uint256 public immutable VESTING_WINDOW = 1 days; // 1 day in seconds
+    uint256 public immutable VESTING_DURATION = 183; // 183 days
+    uint256 public dailyVestingPercent = 546448087431694; // 0.546448087431694 percent
 
     uint256 public maxBuyAmount = 900 ether;
     uint256 public minBuyAmount = 300 ether;
     
     struct User {
         uint256 buyAmount;
-        uint256 vestingAmount;
-        bool initClaimed;
+        uint256 initVestingAmount;
+        uint256 dailyVestingAmount;
+        uint256 dailyVestingDebt;
     }
 
     mapping(address => User) public userByAddress;
@@ -40,29 +45,49 @@ contract PrivateVesting is Ownable {
 
     function revoke() external onlyOwner {
         uint256 amount = rte.balanceOf(address(this));
-        rte.safeTransferFrom(address(this), msg.sender, amount);
+        rte.safeTransfer(msg.sender, amount);
     }
 
     event Buy(address buyer, uint256 amount, uint256 timestamp);
 
-    function buy(uint256 _buyAmount) external {
-        require(_buyAmount >= minBuyAmount && _buyAmount <= maxBuyAmount, "buy: invalid amount");
-        require(userByAddress[msg.sender].buyAmount + _buyAmount <= maxBuyAmount, "buy: max amount exceeds");
+    function buy(uint256 buyAmount) external {
+        require(block.timestamp <= startTime + buyDuration, "buy: closed");
+        require(buyAmount >= minBuyAmount && buyAmount <= maxBuyAmount, "buy: invalid amount");
+        User storage user = userByAddress[msg.sender];
+        require(user.buyAmount + buyAmount <= maxBuyAmount, "buy: max amount exceeds");
 
-        busd.safeTransferFrom(msg.sender, dev, _buyAmount);
-        userByAddress[msg.sender].buyAmount += _buyAmount;
-        userByAddress[msg.sender].vestingAmount += _buyAmount.div(ipoPrice).mul(1e18);
+        busd.safeTransferFrom(msg.sender, dev, buyAmount);
+        user.buyAmount += buyAmount;
 
-        Buy(msg.sender, _buyAmount, block.timestamp);
+        uint256 vestingAmount = buyAmount.div(ipoPrice).mul(1e18);
+        uint256 initVestingAmount = vestingAmount.mul(initVestingPercent).div(100);
+        user.initVestingAmount += initVestingAmount;
+        user.dailyVestingAmount += vestingAmount.sub(initVestingAmount);
+
+        Buy(msg.sender, buyAmount, block.timestamp);
     }
 
     function getVestingAmount() public view returns (uint256) {
-        uint256 initVestingAmount = userByAddress[msg.sender]
-            .vestingAmount
-            .mul(initVestingPercent)
-            .div(100);
+        User storage user = userByAddress[msg.sender];
 
-        return initVestingAmount;
+        uint256 initVestingAmount = 0;
+        if (user.initVestingAmount > 0 && block.timestamp >= startTime) {
+            initVestingAmount = user.initVestingAmount;
+        }
+
+        uint256 dailyVestingAmount = 0;
+        if (block.timestamp >= startTime + cliffTime) {
+            uint256 numDay = block.timestamp.sub(startTime).div(VESTING_WINDOW);
+            numDay = numDay > VESTING_DURATION ? VESTING_DURATION : numDay;
+            
+            if (numDay == VESTING_DURATION) {
+                dailyVestingAmount = user.dailyVestingAmount - user.dailyVestingDebt;
+            } else {
+                dailyVestingAmount = user.dailyVestingAmount.mul(dailyVestingPercent).div(1e17).mul(numDay) - user.dailyVestingDebt;
+            }
+        }
+
+        return initVestingAmount + dailyVestingAmount;
     }
 
     event Claim(address caller, uint256 amount, uint256 timestamp);
@@ -72,6 +97,12 @@ contract PrivateVesting is Ownable {
         require(vestingAmount > 0, "claim: invalid claim amount");
         
         rte.safeTransfer(msg.sender, vestingAmount);
+        User storage user = userByAddress[msg.sender];
+        user.dailyVestingDebt += vestingAmount;
+        if (user.initVestingAmount > 0) {
+            user.dailyVestingDebt -= user.initVestingAmount;
+            user.initVestingAmount = 0;
+        }
 
         Claim(msg.sender, vestingAmount, block.timestamp);
     }

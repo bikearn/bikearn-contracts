@@ -5,8 +5,8 @@ const { getContract, UNLIMITED_ALLOWANCE, parseEther, formatEther } = require('.
 describe('Private Vesting', () => {
     before('set up', async () => {
         this.signers = await ethers.getSigners()
-        this.RTE = await getContract('RTE')
-        this.PrivateVesting = await getContract('PrivateVesting')
+        this.RTE = await getContract(ethers, 'RTE')
+        this.PrivateVesting = await getContract(ethers, 'PrivateVesting')
     })
 
     it('deploy', async () => {
@@ -22,7 +22,8 @@ describe('Private Vesting', () => {
                 rteDeploy.address,
                 busdDeploy.address,
                 this.signers[2].address,
-                10000000,
+                Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 2,
+                // 0
             )
         await vestingDeploy.deployed()
 
@@ -58,22 +59,28 @@ describe('Private Vesting', () => {
         if (allowance.eq(ethers.BigNumber.from('0'))) {
             const rteApproval = await this.rte.approve(this.vesting.address, UNLIMITED_ALLOWANCE)
             await rteApproval.wait()
+        }
 
+        const busdAllowance = await this.busd.allowance(this.signers[0].address, this.vesting.address)
+        if (busdAllowance.eq(ethers.BigNumber.from('0'))) {
             const busdApproval = await this.busd.approve(this.vesting.address, UNLIMITED_ALLOWANCE)
             await busdApproval.wait()
         }
     })
 
     it('buy', async () => {
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 2; i++) {
             let bought = await this.vesting.buy(parseEther('300'))
             await bought.wait()
         }
 
         const user = await this.vesting.userByAddress(this.signers[0].address)
-        /* console.log(formatEther(user.buyAmount))
-        console.log(formatEther(user.vestingAmount))
-        console.log(user.initClaimed) */
+        console.log({
+            buyAmount: formatEther(user.buyAmount),
+            initVestingAmount: formatEther(user.initVestingAmount),
+            dailyVestingAmount: formatEther(user.dailyVestingAmount),
+            dailyVestingDebt: formatEther(user.dailyVestingDebt),
+        })
     })
 
     it('getVestingAmount', async () => {
@@ -86,6 +93,18 @@ describe('Private Vesting', () => {
         await claimed.wait()
         
         const balance = await this.rte.balanceOf(this.signers[0].address)
-        console.log(formatEther(balance))
+        const user = await this.vesting.userByAddress(this.signers[0].address)
+        console.log({
+            balance: formatEther(balance),
+            buyAmount: formatEther(user.buyAmount),
+            initVestingAmount: formatEther(user.initVestingAmount),
+            dailyVestingAmount: formatEther(user.dailyVestingAmount),
+            dailyVestingDebt: formatEther(user.dailyVestingDebt),
+        })
     })
+
+    /* it('claim2', async () => {
+        const claimed = await this.vesting.claim()
+        await claimed.wait()
+    }) */
 })
