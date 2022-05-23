@@ -6,6 +6,8 @@ import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
+import 'hardhat/console.sol';
+
 contract PrivateVesting is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -15,15 +17,19 @@ contract PrivateVesting is Ownable {
 
     address public dev;
 
-    uint256 public startTime;
-    uint256 public buyDuration = 2 days;
-    uint256 public cliffTime = 1 days;
+    uint256 public startBuyTime;
+    uint256 public endBuyTime;
+    uint256 public claimTime;
+    uint256 public cliffTime;
+
     uint256 public initVestingPercent = 15;
-    uint256 public ipoPrice = 48e14; // 0.0048
+    uint256 public ipoPrice = 8e15; // 0.008
     uint256 public immutable VESTING_WINDOW = 1 days; // 1 day in seconds
     uint256 public immutable VESTING_DURATION = 183; // 183 days
     uint256 public dailyVestingPercent = 546448087431694; // 0.546448087431694 percent
 
+    uint256 public totalSale = 180000 ether;
+    uint256 public currentSale = 0 ether;
     uint256 public maxBuyAmount = 900 ether;
     uint256 public minBuyAmount = 300 ether;
     
@@ -36,11 +42,25 @@ contract PrivateVesting is Ownable {
 
     mapping(address => User) public userByAddress;
 
-    constructor(address _rte, address _busd, address _dev, uint256 _startTime) {
+    constructor(
+        address _rte,
+        address _busd,
+        address _dev,
+        uint256 _startBuyTime,
+        uint256 _endBuyTime,
+        uint256 _claimTime,
+        uint256 _cliffTime
+    ) {
         rte = IERC20(_rte);
         busd = IERC20(_busd);
         dev = _dev;
-        startTime = _startTime;
+
+        startBuyTime = _startBuyTime;
+        endBuyTime = _endBuyTime;
+        claimTime = _claimTime;
+        cliffTime = _cliffTime;
+
+        require(claimTime <= cliffTime, "init error");
     }
 
     function revoke() external onlyOwner {
@@ -48,15 +68,23 @@ contract PrivateVesting is Ownable {
         rte.safeTransfer(msg.sender, amount);
     }
 
+    function progress() external view returns (uint256) {
+        return currentSale.mul(1e18).div(totalSale).mul(100);
+    }
+
     event Buy(address buyer, uint256 amount, uint256 timestamp);
 
     function buy(uint256 buyAmount) external {
-        require(block.timestamp <= startTime + buyDuration, "buy: closed");
+        require(block.timestamp >= startBuyTime, "buy: not open");
+        require(block.timestamp <= endBuyTime, "buy: closed");
         require(buyAmount >= minBuyAmount && buyAmount <= maxBuyAmount, "buy: invalid amount");
+        require(currentSale + buyAmount <= totalSale, "buy: exceeds sale");
+
         User storage user = userByAddress[msg.sender];
         require(user.buyAmount + buyAmount <= maxBuyAmount, "buy: max amount exceeds");
 
         busd.safeTransferFrom(msg.sender, dev, buyAmount);
+        currentSale += buyAmount;
         user.buyAmount += buyAmount;
 
         uint256 vestingAmount = buyAmount.div(ipoPrice).mul(1e18);
@@ -71,13 +99,13 @@ contract PrivateVesting is Ownable {
         User storage user = userByAddress[msg.sender];
 
         uint256 initVestingAmount = 0;
-        if (user.initVestingAmount > 0 && block.timestamp >= startTime) {
+        if (user.initVestingAmount > 0 && block.timestamp >= claimTime) {
             initVestingAmount = user.initVestingAmount;
         }
 
         uint256 dailyVestingAmount = 0;
-        if (block.timestamp >= startTime + cliffTime) {
-            uint256 numDay = block.timestamp.sub(startTime).div(VESTING_WINDOW);
+        if (block.timestamp >= cliffTime) {
+            uint256 numDay = block.timestamp.sub(startBuyTime).div(VESTING_WINDOW);
             numDay = numDay > VESTING_DURATION ? VESTING_DURATION : numDay;
             
             if (numDay == VESTING_DURATION) {
@@ -94,7 +122,7 @@ contract PrivateVesting is Ownable {
 
     function claim() external {
         uint256 vestingAmount = getVestingAmount();
-        require(vestingAmount > 0, "claim: invalid claim amount");
+        require(vestingAmount > 0, "claim: error");
         
         rte.safeTransfer(msg.sender, vestingAmount);
         User storage user = userByAddress[msg.sender];

@@ -2,6 +2,8 @@ const { expect } = require("chai")
 const { ethers } = require("hardhat")
 const { getContract, UNLIMITED_ALLOWANCE, parseEther, formatEther } = require('../utils')
 
+const DAY = 60 * 60 * 24
+
 describe('Private Vesting', () => {
     before('set up', async () => {
         this.signers = await ethers.getSigners()
@@ -16,14 +18,17 @@ describe('Private Vesting', () => {
         const busdDeploy = await this.RTE.contract.deploy()
         await busdDeploy.deployed()
 
+        const currentTime = Math.floor(Date.now() / 1000)
         const vestingDeploy = await this.PrivateVesting
             .contract
             .deploy(
                 rteDeploy.address,
                 busdDeploy.address,
                 this.signers[2].address,
-                Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 2,
-                // 0
+                currentTime - DAY * 182, // start buy time
+                currentTime + DAY * 5, // end buy time
+                currentTime + DAY * 0, // claim time
+                currentTime + DAY * 0, // cliff time
             )
         await vestingDeploy.deployed()
 
@@ -68,6 +73,17 @@ describe('Private Vesting', () => {
         }
     })
 
+    it('sale', async () => {
+        const total = await this.vesting.totalSale()
+        const current = await this.vesting.currentSale()
+        const progress = await this.vesting.progress()
+        console.log({
+            totalSale: formatEther(total),
+            currentSale: formatEther(current),
+            progress: formatEther(progress)
+        })
+    })
+
     it('buy', async () => {
         for (let i = 0; i < 2; i++) {
             let bought = await this.vesting.buy(parseEther('300'))
@@ -100,6 +116,17 @@ describe('Private Vesting', () => {
             initVestingAmount: formatEther(user.initVestingAmount),
             dailyVestingAmount: formatEther(user.dailyVestingAmount),
             dailyVestingDebt: formatEther(user.dailyVestingDebt),
+        })
+    })
+
+    it('sale', async () => {
+        const total = await this.vesting.totalSale()
+        const current = await this.vesting.currentSale()
+        const progress = await this.vesting.progress()
+        console.log({
+            totalSale: formatEther(total),
+            currentSale: formatEther(current),
+            progress: formatEther(progress)
         })
     })
 
