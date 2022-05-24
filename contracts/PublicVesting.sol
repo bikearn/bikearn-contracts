@@ -139,7 +139,7 @@ contract PublicVesting is Ownable {
     }
 
     function refund() external {
-        // require(block.timestamp >= listingTime + 30 minutes && block.timestamp <= listingTime + 2 hours, "refund: refund time expired");
+        require(block.timestamp >= listingTime + 30 minutes && block.timestamp <= listingTime + 2 hours, "refund: refund time expired");
 
         User storage user = userByAddress[msg.sender];
         require(user.buyAmount > 0, "refund: invalid amount");
