@@ -16,9 +16,9 @@ const main = async () => {
         1661472000, // cliff time */
         
         1653238800, // start time
-        1653325200, // close time
+        1653498000, // close time
         1653238800, // claim time
-        1653325200, // cliff time
+        1653498000, // cliff time
     )
     await vesting.deployed()
 
