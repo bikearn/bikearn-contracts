@@ -1,5 +1,6 @@
 {
     "rteAddress": "0x4429Ed58be5c3D4fe95a21A12CC5AcE6C3879f7b",
     "busdAddress": "0x4429Ed58be5c3D4fe95a21A12CC5AcE6C3879f7b",
-    "privateVestingAddress": "0x1863328950Fc5Ae8280e259E707D3bdD0435b75A"
+    "privateVestingAddress": "0x84468CC6f20ca90444473890C2e50D33D5777006",
+    "publicVestingAddress": "0x5e3eA974Bc5274e9BE6AE74FE59c735d5fB354df"
 }

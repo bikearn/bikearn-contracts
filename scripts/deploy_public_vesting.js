@@ -5,14 +5,14 @@ const fs = require('fs')
 const main = async () => {
     let addresses = JSON.parse(fs.readFileSync(`${network.name}_address.json`))
 
-    const Vesting = await ethers.getContractFactory("PrivateVesting")
+    const Vesting = await ethers.getContractFactory("PublicVesting")
     const vesting = await Vesting.deploy(
         addresses.rteAddress,
         addresses.busdAddress,
-        /* 1653462000, // start time
+        /* 1653465600, // start time
         1653562800, // close time
         1653573600, // claim time
-        1661472000, // cliff time
+        1658793600, // cliff time
         1653570000, // listing time */
         
         1653238800, // start time
@@ -23,7 +23,7 @@ const main = async () => {
     )
     await vesting.deployed()
 
-    addresses.privateVestingAddress = vesting.address
+    addresses.publicVestingAddress = vesting.address
     fs.writeFileSync(
         `${network.name}_address.json`,
         JSON.stringify(addresses, null, 4)

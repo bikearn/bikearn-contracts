@@ -6,7 +6,7 @@ import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
-contract PrivateVesting is Ownable {
+contract PublicVesting is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -19,16 +19,16 @@ contract PrivateVesting is Ownable {
     uint256 public cliffTime;
     uint256 public listingTime;
 
-    uint256 public initVestingPercent = 15;
-    uint256 public ipoPrice = 8e15; // 0.008
+    uint256 public initVestingPercent = 25;
+    uint256 public ipoPrice = 12e15; // 0.012
     uint256 public immutable VESTING_WINDOW = 1 days; // 1 day in seconds
-    uint256 public immutable VESTING_DURATION = 183; // 183 days
-    uint256 public dailyVestingPercent = 546448087431694; // 0.546448087431694 percent
+    uint256 public immutable VESTING_DURATION = 90; // 90 days
+    uint256 public dailyVestingPercent = 1111111111111111; // 1.1111111111111111 percent
 
-    uint256 public totalSale = 180000 ether;
+    uint256 public totalSale = 100000 ether;
     uint256 public currentSale = 0 ether;
-    uint256 public maxBuyAmount = 900 ether;
-    uint256 public minBuyAmount = 300 ether;
+    uint256 public maxBuyAmount = 500 ether;
+    uint256 public minBuyAmount = 200 ether;
     
     struct User {
         uint256 buyAmount;

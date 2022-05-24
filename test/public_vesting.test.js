@@ -4,11 +4,11 @@ const { getContract, UNLIMITED_ALLOWANCE, parseEther, formatEther } = require('.
 
 const DAY = 60 * 60 * 24
 
-describe('Private Vesting', () => {
+describe('Public Vesting', () => {
     before('set up', async () => {
         this.signers = await ethers.getSigners()
         this.RTE = await getContract(ethers, 'RTE')
-        this.PrivateVesting = await getContract(ethers, 'PrivateVesting')
+        this.PrivateVesting = await getContract(ethers, 'PublicVesting')
     })
 
     it('deploy', async () => {
@@ -24,11 +24,11 @@ describe('Private Vesting', () => {
             .deploy(
                 rteDeploy.address,
                 busdDeploy.address,
-                currentTime - DAY * 3, // start buy time
+                currentTime - DAY * 1, // start buy time
                 currentTime + DAY * 5, // end buy time
                 currentTime + DAY * 0, // claim time
-                currentTime + DAY * 5, // cliff time
-                currentTime - 60 * 45, // listing time
+                currentTime + DAY * 0, // cliff time
+                currentTime - 60 * 45 * 0, // listing time
             )
         await vestingDeploy.deployed()
 
@@ -85,10 +85,8 @@ describe('Private Vesting', () => {
     })
 
     it('buy', async () => {
-        for (let i = 0; i < 2; i++) {
-            let bought = await this.vesting.buy(parseEther('300'))
-            await bought.wait()
-        }
+        let bought = await this.vesting.buy(parseEther('500'))
+        await bought.wait()
 
         const busdBalance = await this.busd.balanceOf(this.signers[0].address)
         const user = await this.vesting.userByAddress(this.signers[0].address)
