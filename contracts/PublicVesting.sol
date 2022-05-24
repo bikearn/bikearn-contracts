@@ -139,12 +139,15 @@ contract PublicVesting is Ownable {
     }
 
     function refund() external {
-        require(block.timestamp >= listingTime + 30 minutes && block.timestamp <= listingTime + 2 hours, "refund: refund time expired");
+        // require(block.timestamp >= listingTime + 30 minutes && block.timestamp <= listingTime + 2 hours, "refund: refund time expired");
 
         User storage user = userByAddress[msg.sender];
         require(user.buyAmount > 0, "refund: invalid amount");
 
-        rte.safeTransferFrom(msg.sender, address(this), user.initVestingDebt + user.dailyVestingDebt);
+        if (user.initVestingDebt + user.dailyVestingDebt > 0) {
+            rte.safeTransferFrom(msg.sender, address(this), user.initVestingDebt + user.dailyVestingDebt);
+        }
+
         busd.safeTransfer(msg.sender, user.buyAmount);
 
         currentSale -= user.buyAmount;

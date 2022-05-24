@@ -28,7 +28,7 @@ describe('Public Vesting', () => {
                 currentTime + DAY * 5, // end buy time
                 currentTime + DAY * 0, // claim time
                 currentTime + DAY * 0, // cliff time
-                currentTime - 60 * 45 * 0, // listing time
+                currentTime - 60 * 45 * 1, // listing time
             )
         await vestingDeploy.deployed()
 
