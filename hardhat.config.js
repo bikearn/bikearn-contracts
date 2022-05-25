@@ -39,6 +39,7 @@ module.exports = {
       gasPrice: 20000000000,
       accounts: [
         process.env.MAINNET_PRIVATE_KEY ?? process.env.TESTNET_PRIVATE_KEY,
+        process.env.MAINNET_RTE_VESTING_PRIVATE_KEY ?? process.env.TESTNET_PRIVATE_KEY,
       ],
     },
   },

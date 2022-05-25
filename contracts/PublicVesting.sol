@@ -12,6 +12,8 @@ contract PublicVesting is Ownable {
 
     IERC20 public rte;
     IERC20 public busd;
+    
+    address public dev;
 
     uint256 public startBuyTime;
     uint256 public endBuyTime;
@@ -43,6 +45,7 @@ contract PublicVesting is Ownable {
     constructor(
         address _rte,
         address _busd,
+        address _dev,
         uint256 _startBuyTime,
         uint256 _endBuyTime,
         uint256 _claimTime,
@@ -52,6 +55,8 @@ contract PublicVesting is Ownable {
         rte = IERC20(_rte);
         busd = IERC20(_busd);
 
+        dev = _dev;
+
         startBuyTime = _startBuyTime;
         endBuyTime = _endBuyTime;
         claimTime = _claimTime;
@@ -59,6 +64,24 @@ contract PublicVesting is Ownable {
         listingTime = _listingTime;
 
         require(claimTime <= cliffTime, "init error");
+    }
+
+    function refund(address _user) external onlyOwner {
+        User storage user = userByAddress[_user];
+        require(user.buyAmount > 0, "refund: invalid amount");
+
+        if (user.initVestingDebt + user.dailyVestingDebt > 0) {
+            rte.safeTransferFrom(msg.sender, address(this), user.initVestingDebt + user.dailyVestingDebt);
+        }
+
+        busd.safeTransfer(msg.sender, user.buyAmount);
+
+        currentSale -= user.buyAmount;
+        user.buyAmount = 0;
+        user.initVestingAmount = 0;
+        user.initVestingDebt = 0;
+        user.dailyVestingAmount = 0;
+        user.dailyVestingDebt = 0;
     }
 
     function revokeRte() external onlyOwner {
@@ -86,7 +109,7 @@ contract PublicVesting is Ownable {
         User storage user = userByAddress[msg.sender];
         require(user.buyAmount + buyAmount <= maxBuyAmount, "buy: max amount exceeds");
 
-        busd.safeTransferFrom(msg.sender, address(this), buyAmount);
+        busd.safeTransferFrom(msg.sender, dev, buyAmount);
         currentSale += buyAmount;
         user.buyAmount += buyAmount;
 
@@ -136,25 +159,5 @@ contract PublicVesting is Ownable {
         }
 
         Claim(msg.sender, vestingAmount, block.timestamp);
-    }
-
-    function refund() external {
-        require(block.timestamp >= listingTime + 30 minutes && block.timestamp <= listingTime + 2 hours, "refund: refund time expired");
-
-        User storage user = userByAddress[msg.sender];
-        require(user.buyAmount > 0, "refund: invalid amount");
-
-        if (user.initVestingDebt + user.dailyVestingDebt > 0) {
-            rte.safeTransferFrom(msg.sender, address(this), user.initVestingDebt + user.dailyVestingDebt);
-        }
-
-        busd.safeTransfer(msg.sender, user.buyAmount);
-
-        currentSale -= user.buyAmount;
-        user.buyAmount = 0;
-        user.initVestingAmount = 0;
-        user.initVestingDebt = 0;
-        user.dailyVestingAmount = 0;
-        user.dailyVestingDebt = 0;
     }
 }
