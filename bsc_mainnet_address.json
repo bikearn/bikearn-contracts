@@ -1,6 +1,8 @@
 {
-    "rteAddress": "0x83AD7F46454d28c8363035ce1f3d5eb629991ee2",
+    "rteAddress": "0xf49f389B9d3bACe6c0f814C0da7BeF50361C19AC",
     "busdAddress": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
     "privateVestingAddress": "0xF99DFa914347d6b3B8Ec659B9b9994D6B7A1e34b",
-    "publicVestingAddress": "0x70df2BA019945Fe601cECF73914Dfe87BBb21057"
+    "publicVestingAddress": "0x70df2BA019945Fe601cECF73914Dfe87BBb21057",
+    "publicVestingV2Address": "0x4E9B1A9870633A0FDad0a8A1c2cC1bBB7005785A",
+    "privateVestingV2Address": "0xA50f99A91A72734E1CF31B9B127E44733e848a92"
 }

@@ -9,6 +9,7 @@ describe('Public Vesting', () => {
         this.signers = await ethers.getSigners()
         this.RTE = await getContract(ethers, 'RTE')
         this.PrivateVesting = await getContract(ethers, 'PublicVesting')
+        this.PrivateVestingV2 = await getContract(ethers, 'PublicVestingV2')
     })
 
     it('deploy', async () => {
@@ -24,6 +25,7 @@ describe('Public Vesting', () => {
             .deploy(
                 rteDeploy.address,
                 busdDeploy.address,
+                this.signers[0].address,
                 currentTime - DAY * 1, // start buy time
                 currentTime + DAY * 5, // end buy time
                 currentTime + DAY * 0, // claim time
@@ -31,6 +33,17 @@ describe('Public Vesting', () => {
                 currentTime - 60 * 45 * 1, // listing time
             )
         await vestingDeploy.deployed()
+
+        const vestingV2Deploy = await this.PrivateVestingV2
+            .contract
+            .deploy(
+                rteDeploy.address,
+                vestingDeploy.address,
+                currentTime - DAY * 80, // start buy time
+                currentTime + DAY * 0, // claim buy time
+                currentTime + DAY * 0 // cliff buy time
+            )
+        await vestingV2Deploy.deployed()
 
         this.rte = new ethers.Contract(
             rteDeploy.address,
@@ -49,10 +62,16 @@ describe('Public Vesting', () => {
             this.PrivateVesting.abi,
             this.signers[0]
         )
+
+        this.vestingV2 = new ethers.Contract(
+            vestingV2Deploy.address,
+            this.PrivateVestingV2.abi,
+            this.signers[0]
+        )
     })
 
     it('transfer', async () => {
-        const transfered = await this.rte.transfer(this.vesting.address, parseEther('5000000'))
+        const transfered = await this.rte.transfer(this.vestingV2.address, parseEther('5000000'))
         await transfered.wait()
 
         const balance = await this.rte.balanceOf(this.vesting.address)
@@ -60,20 +79,20 @@ describe('Public Vesting', () => {
     })
 
     it('approval', async () => {
-        const allowance = await this.rte.allowance(this.signers[0].address, this.vesting.address)
+        const allowance = await this.rte.allowance(this.signers[0].address, this.vestingV2.address)
         if (allowance.eq(ethers.BigNumber.from('0'))) {
             const rteApproval = await this.rte.approve(this.vesting.address, UNLIMITED_ALLOWANCE)
             await rteApproval.wait()
         }
 
-        const busdAllowance = await this.busd.allowance(this.signers[0].address, this.vesting.address)
+        const busdAllowance = await this.busd.allowance(this.signers[0].address, this.vestingV2.address)
         if (busdAllowance.eq(ethers.BigNumber.from('0'))) {
             const busdApproval = await this.busd.approve(this.vesting.address, UNLIMITED_ALLOWANCE)
             await busdApproval.wait()
         }
     })
 
-    it('sale', async () => {
+    /* it('sale', async () => {
         const total = await this.vesting.totalSale()
         const current = await this.vesting.currentSale()
         const progress = await this.vesting.progress()
@@ -82,7 +101,7 @@ describe('Public Vesting', () => {
             currentSale: formatEther(current),
             progress: formatEther(progress)
         })
-    })
+    }) */
 
     it('buy', async () => {
         let bought = await this.vesting.buy(parseEther('500'))
@@ -100,12 +119,12 @@ describe('Public Vesting', () => {
         })
     })
 
-    it('getVestingAmount', async () => {
+    /* it('getVestingAmount', async () => {
         const vestingAmount = await this.vesting.getVestingAmount()
         console.log(formatEther(vestingAmount))
-    })
+    }) */
 
-    it('claim', async () => {
+    /* it('claim', async () => {
         const claimed = await this.vesting.claim()
         await claimed.wait()
         
@@ -121,9 +140,9 @@ describe('Public Vesting', () => {
             dailyVestingAmount: formatEther(user.dailyVestingAmount),
             dailyVestingDebt: formatEther(user.dailyVestingDebt),
         })
-    })
+    }) */
 
-    it('sale', async () => {
+    /* it('sale', async () => {
         const total = await this.vesting.totalSale()
         const current = await this.vesting.currentSale()
         const progress = await this.vesting.progress()
@@ -132,28 +151,29 @@ describe('Public Vesting', () => {
             currentSale: formatEther(current),
             progress: formatEther(progress)
         })
-    })
+    }) */
 
-    it('refund', async () => {
-        const refunded = await this.vesting.refund()
-        await refunded.wait()
-
-        const busdBalance = await this.busd.balanceOf(this.signers[0].address)
-        const rteBalance = await this.rte.balanceOf(this.signers[0].address)
-        const user = await this.vesting.userByAddress(this.signers[0].address)
+    it('vessting v2', async () => {
+        const user = await this.vestingV2.getUserInfo()
         console.log({
-            busdBalance: formatEther(busdBalance),
-            rteBalance: formatEther(rteBalance),
             buyAmount: formatEther(user.buyAmount),
             initVestingAmount: formatEther(user.initVestingAmount),
-            initVestingDebt: formatEther(user.initVestingDebt),
             dailyVestingAmount: formatEther(user.dailyVestingAmount),
-            dailyVestingDebt: formatEther(user.dailyVestingDebt),
         })
-    })
 
-    /* it('claim2', async () => {
-        const claimed = await this.vesting.claim()
+        const amount = await this.vestingV2.getVestingAmount()
+        console.log({ amount: formatEther(amount) })
+
+        const claimed = await this.vestingV2.claim()
         await claimed.wait()
-    }) */
+
+        const debt = await this.vestingV2.debtByAddress(this.signers[0].address)
+        console.log({ 
+            initVestingDebt: formatEther(debt.initVestingDebt),
+            dailyVestingDebt: formatEther(debt.dailyVestingDebt),
+        })
+
+        const amount2 = await this.vestingV2.getVestingAmount()
+        console.log({ amount: formatEther(amount2) })
+    })
 })
