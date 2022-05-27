@@ -3,34 +3,34 @@ const { task, types } = require('hardhat/config')
 const { parseEther, formatEther, UNLIMITED_ALLOWANCE, txUrl } = require('../utils')
 
 const vestingAbi =
-    require('../artifacts/contracts/PrivateVestingV2.sol/PrivateVestingV2.json').abi
+    require('../artifacts/contracts/PublicVestingV2.sol/PublicVestingV2.json').abi
 const busdAbi =
     require('../artifacts/contracts/RTE.sol/RTE.json').abi
 
-task('private-vesting', 'private vesting tasks')
+task('public-vesting', 'public vesting tasks')
     .addParam('task', 'task', undefined, types.string)
     .setAction(async (args, hre) => {
         if (args.task === 'getUser') {
-            await hre.run('private-vesting-get-user')
+            await hre.run('public-vesting-get-user')
         } else if (args.task === 'buy') {
-            await hre.run('private-vesting-buy')
+            await hre.run('public-vesting-buy')
         } else if (args.task === 'claim') {
-            await hre.run('private-vesting-claim')
+            await hre.run('public-vesting-claim')
         } else if (args.task === 'info') {
-            await hre.run('private-vesting-info')
+            await hre.run('public-vesting-info')
         } else if (args.task === 'revoke') {
-            await hre.run('private-vesting-voke')
+            await hre.run('public-vesting-voke')
         } else if (args.task === 'set-rte') {
-            await hre.run('private-vesting-set-rte')
+            await hre.run('public-vesting-set-rte')
         }
     })
 
-subtask('private-vesting-set-rte', 'set rte').setAction(async (args, hre) => {
-    const { privateVestingV2Address, rteAddress } = require(`../${hre.network.name}_address.json`)
+subtask('public-vesting-set-rte', 'set rte').setAction(async (args, hre) => {
+    const { publicVestingV2Address, rteAddress } = require(`../${hre.network.name}_address.json`)
     const signers = await ethers.getSigners()
 
     const vesting = new ethers.Contract(
-        privateVestingV2Address,
+        publicVestingV2Address,
         vestingAbi,
         signers[0]
     )
@@ -44,12 +44,12 @@ subtask('private-vesting-set-rte', 'set rte').setAction(async (args, hre) => {
     console.log('done')
 })
 
-subtask('private-vesting-info', 'get info').setAction(async (args, hre) => {
-    const { privateVestingV2Address } = require(`../${hre.network.name}_address.json`)
+subtask('public-vesting-info', 'get info').setAction(async (args, hre) => {
+    const { publicVestingV2Address } = require(`../${hre.network.name}_address.json`)
     const signer = await ethers.getSigner()
 
     const vesting = new ethers.Contract(
-        privateVestingV2Address,
+        publicVestingV2Address,
         vestingAbi,
         signer
     )
@@ -64,12 +64,12 @@ subtask('private-vesting-info', 'get info').setAction(async (args, hre) => {
     console.log({ user })
 })
 
-subtask('private-vesting-info', 'get info').setAction(async (args, hre) => {
-    const { privateVestingV2Address } = require(`../${hre.network.name}_address.json`)
+subtask('public-vesting-info', 'get info').setAction(async (args, hre) => {
+    const { publicVestingV2Address } = require(`../${hre.network.name}_address.json`)
     const signer = await ethers.getSigner()
 
     const vesting = new ethers.Contract(
-        privateVestingV2Address,
+        publicVestingV2Address,
         vestingAbi,
         signer
     )
@@ -84,7 +84,7 @@ subtask('private-vesting-info', 'get info').setAction(async (args, hre) => {
     console.log({ user })
 })
 
-subtask('private-vesting-revoke', 'revoke').setAction(async (args, hre) => {
+subtask('public-vesting-revoke', 'revoke').setAction(async (args, hre) => {
     const { privateVestingAddress } = require(`../${hre.network.name}_address.json`)
     const signer = await ethers.getSigner()
 
@@ -100,7 +100,7 @@ subtask('private-vesting-revoke', 'revoke').setAction(async (args, hre) => {
     console.log('done')
 })
 
-subtask('private-vesting-get-user', 'get user').setAction(async (args, hre) => {
+subtask('public-vesting-get-user', 'get user').setAction(async (args, hre) => {
     const { privateVestingAddress } = require(`../${hre.network.name}_address.json`)
     const signer = await ethers.getSigner()
 
@@ -122,7 +122,7 @@ subtask('private-vesting-get-user', 'get user').setAction(async (args, hre) => {
     console.log('done')
 })
 
-subtask('private-vesting-buy', 'buy').setAction(async (args, hre) => {
+subtask('public-vesting-buy', 'buy').setAction(async (args, hre) => {
     const { privateVestingAddress, busdAddress } = require(`../${hre.network.name}_address.json`)
     const signer = await ethers.getSigner()
 
@@ -157,7 +157,7 @@ subtask('private-vesting-buy', 'buy').setAction(async (args, hre) => {
     console.log('done')
 })
 
-subtask('private-vesting-claim', 'claim').setAction(async (args, hre) => {
+subtask('public-vesting-claim', 'claim').setAction(async (args, hre) => {
     const { privateVestingAddress } = require(`../${hre.network.name}_address.json`)
     const signer = await ethers.getSigner()
 
