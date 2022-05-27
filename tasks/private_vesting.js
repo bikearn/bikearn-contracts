@@ -3,6 +3,8 @@ const { task, types } = require('hardhat/config')
 const { parseEther, formatEther, UNLIMITED_ALLOWANCE, txUrl } = require('../utils')
 
 const vestingAbi =
+    require('../artifacts/contracts/PrivateVesting.sol/PrivateVesting.json').abi
+const vestingAbiV2 =
     require('../artifacts/contracts/PrivateVestingV2.sol/PrivateVestingV2.json').abi
 const busdAbi =
     require('../artifacts/contracts/RTE.sol/RTE.json').abi
@@ -45,43 +47,28 @@ subtask('private-vesting-set-rte', 'set rte').setAction(async (args, hre) => {
 })
 
 subtask('private-vesting-info', 'get info').setAction(async (args, hre) => {
-    const { privateVestingV2Address } = require(`../${hre.network.name}_address.json`)
+    const { privateVestingV2Address, privateVestingAddress } = require(`../${hre.network.name}_address.json`)
     const signer = await ethers.getSigner()
 
     const vesting = new ethers.Contract(
-        privateVestingV2Address,
+        privateVestingAddress,
         vestingAbi,
         signer
     )
 
-    const debt = await vesting.debtByAddress('0x4c0Ba67b68FC580cBdDDC3b08B0CE63E8a376Ef8')
-    console.log({ debt })
-
-    const amount = await vesting.getVestingAmount()
-    console.log({ amount })
-
-    const user = await vesting.getUserInfo()
-    console.log({ user })
-})
-
-subtask('private-vesting-info', 'get info').setAction(async (args, hre) => {
-    const { privateVestingV2Address } = require(`../${hre.network.name}_address.json`)
-    const signer = await ethers.getSigner()
-
-    const vesting = new ethers.Contract(
+    const vestingv2 = new ethers.Contract(
         privateVestingV2Address,
-        vestingAbi,
+        vestingAbiV2,
         signer
     )
 
-    const debt = await vesting.debtByAddress('0x4c0Ba67b68FC580cBdDDC3b08B0CE63E8a376Ef8')
+    const address = '0x5dA13b4f79f14D15a115A12273E10E07008590a8'
+
+    const debt = await vestingv2.debtByAddress(address)
     console.log({ debt })
 
-    const amount = await vesting.getVestingAmount()
-    console.log({ amount })
-
-    const user = await vesting.getUserInfo()
-    console.log({ user })
+    const user = await vesting.userByAddress(address)
+    console.log(user)
 })
 
 subtask('private-vesting-revoke', 'revoke').setAction(async (args, hre) => {
