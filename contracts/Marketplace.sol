@@ -362,4 +362,8 @@ contract Marketplace is ReentrancyGuard, Ownable, IERC721Receiver {
 
         return tokens;
     }
+
+    function getTotalSale() external view returns (uint256) {
+        return _saleIds.current() - _saleInactive.current() - _saleSold.current();
+    }
 }
