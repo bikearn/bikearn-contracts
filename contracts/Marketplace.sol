@@ -11,6 +11,8 @@ import '@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol';
 import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+import "./interfaces/IBike.sol";
+
 contract Marketplace is ReentrancyGuard, Ownable, IERC721Receiver {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
@@ -344,6 +346,7 @@ contract Marketplace is ReentrancyGuard, Ownable, IERC721Receiver {
         uint256 tokenId;
         address contractAddress;
         string URI;
+        uint256 star;
     }
 
     function getUserNFTs() external view returns (TokenInfo[] memory) {
@@ -356,8 +359,9 @@ contract Marketplace is ReentrancyGuard, Ownable, IERC721Receiver {
             string memory uri = ERC721URIStorage(address(bike)).tokenURI(
                 tokenId
             );
+            (uint256 star, , , , ) = IBike(address(bike)).getGameItem(tokenId);
 
-            tokens[i] = TokenInfo(tokenId, address(bike), uri);
+            tokens[i] = TokenInfo(tokenId, address(bike), uri, star);
         }
 
         return tokens;
