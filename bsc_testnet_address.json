@@ -1,6 +1,8 @@
 {
     "rteAddress": "0x4429Ed58be5c3D4fe95a21A12CC5AcE6C3879f7b",
+    "bikeAddress": "0x7Cbc2D1eF7ee413d76454A8D263DC77c34E64eBF",
     "busdAddress": "0x4429Ed58be5c3D4fe95a21A12CC5AcE6C3879f7b",
     "privateVestingAddress": "0xd56Dd7AA18834e411a7698BfB80dFcf97b50dabb",
-    "publicVestingAddress": "0xbd949B152397b2c754EdaB202fCcB85E9f6c994c"
+    "publicVestingAddress": "0xbd949B152397b2c754EdaB202fCcB85E9f6c994c",
+    "marketAddress": "0x3E12A16Bf6fA188cBF7740D3e7D492E8f86b2ca8"
 }
