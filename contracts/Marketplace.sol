@@ -60,6 +60,7 @@ contract Marketplace is ReentrancyGuard, Ownable, IERC721Receiver {
      */
     struct Sale {
         uint256 saleId;
+        uint256 star;
         uint256 tokenId;
         address seller;
         address buyer;
@@ -129,8 +130,11 @@ contract Marketplace is ReentrancyGuard, Ownable, IERC721Receiver {
 
         bike.safeTransferFrom(msg.sender, address(this), tokenId);
 
+        (uint256 star, , , , ) = IBike(address(bike)).getGameItem(tokenId);
+
         Sales[saleId] = Sale(
             saleId,
+            star,
             tokenId,
             msg.sender,
             address(0),
