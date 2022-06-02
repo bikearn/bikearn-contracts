@@ -6,11 +6,11 @@ const deploy = async () => {
     let addresses = JSON.parse(fs.readFileSync(`${network.name}_address.json`))
     const signers = await ethers.getSigners()
 
-    const Marketplace = (await ethers.getContractFactory('Marketplace')).connect(signers[0])
+    const Marketplace = (await ethers.getContractFactory('Marketplace')).connect(signers[1])
     const market = await Marketplace.deploy(
-        addresses.rteAddress,
+        addresses.busdAddress,
         addresses.bikeAddress,
-        signers[0].address
+        signers[1].address
     )
     await market.deployed()
 
