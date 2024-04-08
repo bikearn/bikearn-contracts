@@ -54,7 +54,7 @@ contract PublicVestingV2 is Ownable {
     function setRte(address _rte) external onlyOwner {
         rte = IERC20(_rte);
     }
-    
+
     function setClaimTime(uint256 _claimTime) external onlyOwner {
         claimTime = _claimTime;
     }
@@ -83,7 +83,7 @@ contract PublicVestingV2 is Ownable {
         if (block.timestamp >= cliffTime) {
             uint256 numDay = block.timestamp.sub(startBuyTime).div(VESTING_WINDOW);
             numDay = numDay > VESTING_DURATION ? VESTING_DURATION : numDay;
-            
+
             if (numDay == VESTING_DURATION) {
                 dailyVestingAmount = user.dailyVestingAmount - debt.dailyVestingDebt;
             } else {
@@ -97,7 +97,7 @@ contract PublicVestingV2 is Ownable {
     function claim() external {
         uint256 vestingAmount = getVestingAmount();
         require(vestingAmount > 0, "claim: error");
-        
+
         rte.safeTransfer(msg.sender, vestingAmount);
 
         IVesting.User memory user = getUserInfo();

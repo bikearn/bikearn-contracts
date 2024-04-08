@@ -4,7 +4,7 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 
-require("./tasks")
+require("./tasks");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -39,13 +39,14 @@ module.exports = {
       gasPrice: 20000000000,
       accounts: [
         process.env.MAINNET_PRIVATE_KEY ?? process.env.TESTNET_PRIVATE_KEY,
-        process.env.MAINNET_RTE_VESTING_PRIVATE_KEY ?? process.env.TESTNET_PRIVATE_KEY,
+        process.env.MAINNET_RTE_VESTING_PRIVATE_KEY ??
+          process.env.TESTNET_PRIVATE_KEY,
       ],
     },
   },
-  etherscan: {
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
-    apiKey: process.env.BSCSCAN_API_KEY,
-  },
+  // etherscan: {
+  //   // Your API key for Etherscan
+  //   // Obtain one at https://etherscan.io/
+  //   apiKey: process.env.BSCSCAN_API_KEY,
+  // },
 };
